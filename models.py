@@ -124,11 +124,13 @@ class MobileNetV3():
                         loss=loss,
                         metrics = metrics)
 
-        self.model.fit(        
+        history = self.model.fit(        
             image_generator.train_generator(),        
             epochs = epochs,
             callbacks = callbacks,
             validation_data = image_generator.validation_generator())
+
+        return history
 
   
     def train_with_arrays(self, image_generator, epochs, optimizer = 'Adam', loss ='categorical_crossentropy', 
@@ -144,12 +146,14 @@ class MobileNetV3():
         x_train, y_train = image_generator.train_array(batches_num = 100)
         x_test, y_test = image_generator.validation_array(batches_num = 10)
         
-        self.model.fit(
+        history = self.model.fit(
             x_train,
             y_train,        
             epochs = epochs,
             validation_data = (x_test, y_test),
             callbacks = callbacks
         )
+
+        return history
 
 
