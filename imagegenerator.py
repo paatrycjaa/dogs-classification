@@ -8,7 +8,7 @@ from tensorflow.keras.preprocessing import image_dataset_from_directory
 
 
 class ImageGenerator():
-    def __init__(self, data_path, validation_split=0.2, seed=None, batch_size=32, image_size=(256,256)):
+    def __init__(self, data_path, validation_split=0.2, seed=None, batch_size=32, image_size=(224,224)):
         self.train_path = os.path.join(data_path, 'train')
 
         if not os.path.exists(self.train_path):
