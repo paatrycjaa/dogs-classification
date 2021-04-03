@@ -38,7 +38,7 @@ class ImageGenerator():
     def train_generator(self):
         """Create tranining data generator.
 
-        Returns:                
+        Returns:
             A `DirectoryIterator` yielding tuples of `(x, y)`
             where `x` is a numpy array containing a batch
             of images with shape `(batch_size, *target_size, channels)`
@@ -81,7 +81,7 @@ class ImageGenerator():
         """
         return generator_to_array(self.train_generator(), batches_num)
 
-    def validation_array(self, batches_num):        
+    def validation_array(self, batches_num):
         return generator_to_array(self.validation_generator(), batches_num)
 
     def test_array(self, batches_num=None):
@@ -115,10 +115,10 @@ class ImageGenerator():
             batches_num -= 1
             if batches_num < 1:
                 break
-        
+
         return np.concatenate(x, axis=0), np.concatenate(y, axis=0)
 
-def generator_to_array(data_generator, batches_number):     
+def generator_to_array(data_generator, batches_number):
     x = []
     y = []
     for i in range(batches_number):
@@ -139,7 +139,7 @@ if __name__ == "__main__":
     print(generator.train_generator())
     print(generator.validation_generator())
     print(generator.test_generator())
-    
+
     x, y = generator.train_array(2)
     print(x.shape, y.shape)
 
@@ -150,5 +150,5 @@ if __name__ == "__main__":
     print(x.shape, y.shape)
 
 
-        
+
 
