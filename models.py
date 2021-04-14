@@ -16,6 +16,21 @@ class MobileNetV3():
             self.base_model.summary(**kwargs)
         self.model.summary(**kwargs)
 
+    def build_easy_model(self, dropout_rate = 0.2):
+
+        self.model = models.Sequential()
+        self.model.add(layers.Conv2D(16, (5,5), activation='relu', input_shape=(*self.image_shape,3)))
+        self.model.add(layers.MaxPooling2D((4,4)))
+        self.model.add(layers.Conv2D(32, (3,3), activation='relu'))
+        self.model.add(layers.Dropout(dropout_rate))
+        self.model.add(layers.MaxPooling2D((4,4)))
+        self.model.add(layers.Flatten())
+        self.model.add(layers.Dense(32,activation='relu'))
+        self.model.add(layers.Dense(self.labels_num, activation='softmax'))
+
+        self.model.summary()
+
+
     def build_mobileNetV3_1a(self,dropout_rate = 0.2):
         """
         Build model for task 1a - tunning only classificator
