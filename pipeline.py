@@ -10,15 +10,15 @@ batch_size = 32
 labels = ['Afghan hound', 'Maltese dog', 'Scottish deerhound']
 img_size = (224,224)
 
-def train_model(model, epochs=4, save_model=False):
+def train_model(model, epochs=4, model_name='model_simple', save_model=False, patience=3):
     image_generator = imagegenerator.ImageGenerator(data_path, validation_split=0.2, seed=123,
                                                     batch_size=batch_size, image_size=img_size)
 
-    history = model.train_with_generator(image_generator, epochs, callbacks=[models.early_stopping(patience=100)])
+    history = model.train_with_generator(image_generator, epochs, callbacks=[models.early_stopping(patience=patience)])
 
     an = analyzer.Analyzer(results_path)
 
-    an.analyze_model(model, 'model_simple', image_generator, model_parameters=None, labels=labels,
+    an.analyze_model(model, model_name, image_generator, model_parameters=None, labels=labels,
                      k=2, training_history=history, save_model=True)
 
 
