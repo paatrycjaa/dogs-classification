@@ -1,8 +1,10 @@
 import os
 import json
 import datetime
+import uuid
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import sklearn.metrics as metrics
 
@@ -13,7 +15,7 @@ class Analyzer:
     def __init__(self, reports_path):
         self.reports_path = reports_path
 
-    def analyze_model(self, model, model_name, image_generator, model_parameters=None, labels=None, k=2, print_metrics=False):
+    def analyze_model(self, model, model_name, image_generator, model_parameters=None, labels=None, k=2, training_history=None, save_model=False):
         self.model = model
         self.k = k
 
@@ -22,14 +24,22 @@ class Analyzer:
         self.reports_path = self._report_directory(model_name, timestamp)
 
         self._compute_metrics(image_generator, labels)
+        self._print_metrics(model_name)
 
-        self._generate_md_report(model_name, timestamp, model_parameters)
+        self._generate_md_report(model_name, timestamp, model_parameters, training_history)
         self._generate_metrics_json()
 
-        if print_metrics:
-            self._print_metrics(model_name)
-
         self._save_confusion_matrix_plot(labels)
+
+        if training_history is not None:
+            self._save_training_history(training_history)
+
+        if save_model:
+            model.save(os.path.join(self.reports_path, 'model'))
+
+
+    def _save_training_history(self, history):
+        pd.DataFrame(history.history).to_csv(os.path.join(self.reports_path, 'history.csv'), index_label='epoch')
 
     def _compute_metrics(self, image_generator, labels):
         x, y_true = image_generator.test_array()
@@ -56,7 +66,7 @@ class Analyzer:
         with open(os.path.join(self.reports_path, 'metrics.json'), 'w') as f:
             json.dump(m, f)
 
-    def _generate_md_report(self, model_name, timestamp, model_parameters):
+    def _generate_md_report(self, model_name, timestamp, model_parameters, history):
         with open(os.path.join(self.reports_path, 'report.md'), 'w') as f:
             f.write('# {}\n*{}*\n'.format(model_name, timestamp.strftime("%Y-%m-%d %H:%M:%S")))
             self._add_model_summary(f)
@@ -66,6 +76,7 @@ class Analyzer:
 
             self._add_metrics(f)
             self._add_confusion_matrix(f)
+            self._add_history(f, history)
 
     def _add_confusion_matrix(self, file):
         text = '## Confusion matrix\n'
@@ -98,8 +109,18 @@ class Analyzer:
         self.model.summary(print_fn=lambda x : file.write(x + '\n'))
         file.write('```\n')
 
+    def _add_history(self, file, history):
+        df = pd.DataFrame(history.history)
+        header = ' | '.join(df.columns)
+        text = header + '\n'
+        text += ' | '.join(len(df.columns)*['---']) + '\n'
+        for _, row in df.iterrows():
+            text += ' | '.join([str(round(x,4)) for x in row.values])
+            text += '\n'
+        file.write(text)
+
     def _report_directory(self, model_name, timestamp):
-        dir_name = 'results_{}_{}/'.format(model_name, timestamp.strftime("%Y-%m-%d_%H-%M-%S"))
+        dir_name = 'results_{}_{}_{}/'.format(model_name, timestamp.strftime("%m-%d_%H-%M"), uuid.uuid1().hex[:7])
         path = os.path.join(self.reports_path, dir_name)
         try:
             os.mkdir(path)
