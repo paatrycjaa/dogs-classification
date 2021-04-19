@@ -174,4 +174,15 @@ class MobileNetV3():
     def predict(self, x, **kwargs):
         return self.model.predict(x, **kwargs)
 
+    def save(self, path):
+        self.model.save(path)
 
+
+def early_stopping(min_delta=1e-2, patience=3):
+    return tf.keras.callbacks.EarlyStopping(
+        monitor='val_loss',
+        min_delta=min_delta,
+        patience=patience,
+        verbose=1,
+        restore_best_weights=True
+    )
