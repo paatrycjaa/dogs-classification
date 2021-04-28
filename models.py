@@ -158,8 +158,10 @@ class MobileNetV3():
                         loss=loss,
                         metrics = metrics)
 
-        x_train, y_train = image_generator.train_array(batches_num = 100)
+        x_train, y_train = image_generator.train_array(batches_num = 300)
         x_test, y_test = image_generator.validation_array(batches_num = 10)
+
+        print("validation size x:", x_test.shape, " y:", y_test.shape)
 
         history = self.model.fit(
             x_train,

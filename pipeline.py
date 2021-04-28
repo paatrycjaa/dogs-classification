@@ -4,31 +4,37 @@ import imagegenerator
 import tensorflow as tf
 import os
 
-data_path = 'images/subset20'
+# data_path = 'images/subset20'
+data_path = 'images/subset'
 results_path = 'results'
 batch_size = 32
 
+# labels = [
+#     'Afghan hound',
+#     'basset',
+#     'beagle',
+#     'black',
+#     'Blenheim spaniel',
+#     'bloodhound',
+#     'bluetick',
+#     'borzoi',
+#     'Chihuahua',
+#     'English foxhound',
+#     'Irish wolfhound',
+#     'Japanese spaniel',
+#     'Maltese dog',
+#     'papillon',
+#     'Pekinese',
+#     'redbone',
+#     'Rhodesian ridgeback',
+#     'Shih',
+#     'toy terrier',
+#     'Walker hound'
+# ]
 labels = [
     'Afghan hound',
-    'basset',
-    'beagle',
-    'black',
-    'Blenheim spaniel',
-    'bloodhound',
-    'bluetick',
-    'borzoi',
-    'Chihuahua',
-    'English foxhound',
-    'Irish wolfhound',
-    'Japanese spaniel',
     'Maltese dog',
-    'papillon',
-    'Pekinese',
-    'redbone',
-    'Rhodesian ridgeback',
-    'Shih',
-    'toy terrier',
-    'Walker hound'
+    'Scottish_deerhound'
 ]
 img_size = (224, 224)
 
@@ -37,7 +43,8 @@ def train_model(model, epochs=4, model_name='model_simple', save_model=False, pa
     image_generator = imagegenerator.ImageGenerator(data_path, validation_split=0.2, seed=123,
                                                     batch_size=batch_size, image_size=img_size)
 
-    history = model.train_with_generator(image_generator, epochs, callbacks=[models.early_stopping(patience=patience)])
+    # history = model.train_with_generator(image_generator, epochs, callbacks=[models.early_stopping(patience=patience)])
+    history = model.train_with_arrays(image_generator, epochs, callbacks=[models.early_stopping(patience=patience, min_delta=1e-3)])
 
     an = analyzer.Analyzer(results_path)
 
@@ -69,5 +76,5 @@ def run_1a(**kwargs):
 if __name__ == "__main__":
     set_gpu_enabled(True)
     # run_simple_model(save_model=True)
-
-    run_1a(epochs=100, model_name='1a', save_model=True, patience=20)
+    #
+    run_1a(epochs=1000, model_name='1a', save_model=True, patience=50)

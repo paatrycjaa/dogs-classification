@@ -50,7 +50,8 @@ class ImageGenerator():
             batch_size=self.batch_size,
             shuffle=True,
             seed=self.seed,
-            subset='training')
+            subset='training'
+            )
 
     def validation_generator(self):
         return self._image_generator().flow_from_directory(
@@ -59,7 +60,8 @@ class ImageGenerator():
             batch_size=self.batch_size,
             shuffle=True,
             seed=self.seed,
-            subset='validation')
+            subset='validation'
+            )
 
     def test_generator(self):
         """Create test data generator, no augmentation are applied.
