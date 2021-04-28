@@ -26,7 +26,6 @@ class ImageGenerator():
 
     def _image_generator(self):
         return ImageDataGenerator(
-            rescale=1./255,
             shear_range=0.2,
             zoom_range=0.2,
             rotation_range=20,
@@ -66,7 +65,7 @@ class ImageGenerator():
     def test_generator(self):
         """Create test data generator, no augmentation are applied.
         """
-        return ImageDataGenerator(rescale=1./255).flow_from_directory(
+        return ImageDataGenerator().flow_from_directory(
             self.test_path,
             target_size=self.image_size,
             batch_size=self.batch_size,
@@ -102,15 +101,13 @@ class ImageGenerator():
             shuffle=False,
             validation_split=None)
 
-        rescaled = dataset.map(_normalize_image)
-
         if batches_num is None:
-            batches_num = len(rescaled)
+            batches_num = len(dataset)
 
         x = []
         y = []
 
-        for x_batch, y_batch in rescaled:
+        for x_batch, y_batch in dataset:
             x.append(x_batch)
             y.append(y_batch)
 
@@ -128,9 +125,6 @@ def generator_to_array(data_generator, batches_number):
         x.append(n[0])
         y.append(n[1])
     return np.concatenate(x, axis=0), np.concatenate(y, axis=0)
-
-def _normalize_image(image, label):
-    return tf.cast(image, tf.float32) / 255., label
 
 if __name__ == "__main__":
 

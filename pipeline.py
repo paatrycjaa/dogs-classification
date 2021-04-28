@@ -43,8 +43,8 @@ def train_model(model, epochs=4, model_name='model_simple', save_model=False, pa
     image_generator = imagegenerator.ImageGenerator(data_path, validation_split=0.2, seed=123,
                                                     batch_size=batch_size, image_size=img_size)
 
-    # history = model.train_with_generator(image_generator, epochs, callbacks=[models.early_stopping(patience=patience)])
-    history = model.train_with_arrays(image_generator, epochs, callbacks=[models.early_stopping(patience=patience, min_delta=1e-3)])
+    history = model.train_with_generator(image_generator, epochs, callbacks=[models.early_stopping(patience=patience, min_delta=1e-3)])
+    # history = model.train_with_arrays(image_generator, epochs, callbacks=[models.early_stopping(patience=patience, min_delta=1e-3)])
 
     an = analyzer.Analyzer(results_path)
 
