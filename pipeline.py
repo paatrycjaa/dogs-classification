@@ -1,15 +1,35 @@
-
 import analyzer
 import models
 import imagegenerator
 import tensorflow as tf
 import os
 
-data_path = 'images/subset'
+data_path = 'images/subset20'
 results_path = 'results'
 batch_size = 32
 
-labels = ['Afghan hound', 'Maltese dog', 'Scottish deerhound']
+labels = [
+    'Afghan hound',
+    'basset',
+    'beagle',
+    'black',
+    'Blenheim spaniel',
+    'bloodhound',
+    'bluetick',
+    'borzoi',
+    'Chihuahua',
+    'English foxhound',
+    'Irish wolfhound',
+    'Japanese spaniel',
+    'Maltese dog',
+    'papillon',
+    'Pekinese',
+    'redbone',
+    'Rhodesian ridgeback',
+    'Shih',
+    'toy terrier',
+    'Walker hound'
+]
 img_size = (224, 224)
 
 
@@ -48,6 +68,6 @@ def run_1a(**kwargs):
 
 if __name__ == "__main__":
     set_gpu_enabled(True)
-    run_simple_model(save_model=True)
+    # run_simple_model(save_model=True)
 
-    # run_1a(epochs=100)
+    run_1a(epochs=100, model_name='1a', save_model=True, patience=20)
