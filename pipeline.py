@@ -4,38 +4,38 @@ import imagegenerator
 import tensorflow as tf
 import os
 
-# data_path = 'images/subset20'
-data_path = 'images/subset'
+data_path = 'images/subset20'
+# data_path = 'images/subset'
 results_path = 'results'
 batch_size = 32
 
-# labels = [
-#     'Afghan hound',
-#     'basset',
-#     'beagle',
-#     'black',
-#     'Blenheim spaniel',
-#     'bloodhound',
-#     'bluetick',
-#     'borzoi',
-#     'Chihuahua',
-#     'English foxhound',
-#     'Irish wolfhound',
-#     'Japanese spaniel',
-#     'Maltese dog',
-#     'papillon',
-#     'Pekinese',
-#     'redbone',
-#     'Rhodesian ridgeback',
-#     'Shih',
-#     'toy terrier',
-#     'Walker hound'
-# ]
 labels = [
     'Afghan hound',
+    'basset',
+    'beagle',
+    'black',
+    'Blenheim spaniel',
+    'bloodhound',
+    'bluetick',
+    'borzoi',
+    'Chihuahua',
+    'English foxhound',
+    'Irish wolfhound',
+    'Japanese spaniel',
     'Maltese dog',
-    'Scottish_deerhound'
+    'papillon',
+    'Pekinese',
+    'redbone',
+    'Rhodesian ridgeback',
+    'Shih',
+    'toy terrier',
+    'Walker hound'
 ]
+# labels = [
+#     'Afghan hound',
+#     'Maltese dog',
+#     'Scottish_deerhound'
+# ]
 img_size = (224, 224)
 
 
@@ -73,8 +73,28 @@ def run_1a(**kwargs):
     train_model(model, **kwargs)
 
 
+def run_2a(**kwargs):
+    model = models.MobileNetV3(img_size, len(labels))
+    model.build_mobileNetV3_2a()
+    train_model(model, **kwargs)
+
+
+def run_2b(**kwargs):
+    model = models.MobileNetV3(img_size, len(labels))
+    model.build_mobileNetV3_2b()
+    train_model(model, **kwargs)
+
+
+def run_2c(**kwargs):
+    model = models.MobileNetV3(img_size, len(labels))
+    model.build_mobileNetV3_2c()
+    train_model(model, **kwargs)
+
+
 if __name__ == "__main__":
     set_gpu_enabled(True)
     # run_simple_model(save_model=True)
-    #
-    run_1a(epochs=1000, model_name='1a', save_model=True, patience=50)
+    # run_1a(epochs=1000, model_name='1a', save_model=True, patience=20)
+    run_2a(epochs=1000, model_name='1a', save_model=True, patience=20)
+    # run_2b(epochs=1000, model_name='1a', save_model=True, patience=20)
+    # run_2c(epochs=1000, model_name='1a', save_model=True, patience=20)
