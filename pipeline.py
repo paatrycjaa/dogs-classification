@@ -2,13 +2,16 @@
 import analyzer
 import models
 import imagegenerator
+import tensorflow as tf
+import os
 
 data_path = 'images/subset'
 results_path = 'results'
 batch_size = 32
 
 labels = ['Afghan hound', 'Maltese dog', 'Scottish deerhound']
-img_size = (224,224)
+img_size = (224, 224)
+
 
 def train_model(model, epochs=4, model_name='model_simple', save_model=False, patience=3):
     image_generator = imagegenerator.ImageGenerator(data_path, validation_split=0.2, seed=123,
@@ -20,6 +23,15 @@ def train_model(model, epochs=4, model_name='model_simple', save_model=False, pa
 
     an.analyze_model(model, model_name, image_generator, model_parameters=None, labels=labels,
                      k=2, training_history=history, save_model=True)
+
+
+def set_gpu_enabled(is_enabled : bool = True):
+    if is_enabled:
+        physical_devices = tf.config.experimental.list_physical_devices('GPU')
+        assert len(physical_devices) > 0, "Not enough GPU hardware devices available"
+        config = tf.config.experimental.set_memory_growth(physical_devices[0], True)
+    else:
+        os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 
 def run_simple_model(**kwargs):
