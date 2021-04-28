@@ -22,10 +22,10 @@ def train_model(model, epochs=4, model_name='model_simple', save_model=False, pa
     an = analyzer.Analyzer(results_path)
 
     an.analyze_model(model, model_name, image_generator, model_parameters=None, labels=labels,
-                     k=2, training_history=history, save_model=True)
+                     k=2, training_history=history, save_model=save_model)
 
 
-def set_gpu_enabled(is_enabled : bool = True):
+def set_gpu_enabled(is_enabled: bool = True):
     if is_enabled:
         physical_devices = tf.config.experimental.list_physical_devices('GPU')
         assert len(physical_devices) > 0, "Not enough GPU hardware devices available"
@@ -47,6 +47,7 @@ def run_1a(**kwargs):
 
 
 if __name__ == "__main__":
+    set_gpu_enabled(True)
     run_simple_model(save_model=True)
 
     # run_1a(epochs=100)
