@@ -100,7 +100,7 @@ class Analyzer:
     def _add_model_parameters(self, file, parameters):
         text = '### Model parameters\n'
         text += '| Prameters | Value \n --- | ---\n'
-        for k, v in items:
+        for k, v in parameters.items():
             text += '{} | {}\n'.format(k,v)
         f.write(text)
 
