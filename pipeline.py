@@ -7,29 +7,29 @@ import os
 data_path = 'images/subset20'
 # data_path = 'images/subset'
 results_path = 'results'
-batch_size = 32
+default_batch_size = 32
 
 labels = [
-    'Afghan hound',
-    'basset',
-    'beagle',
-    'black',
-    'Blenheim spaniel',
-    'bloodhound',
-    'bluetick',
-    'borzoi',
-    'Chihuahua',
-    'English foxhound',
-    'Irish wolfhound',
-    'Japanese spaniel',
-    'Maltese dog',
-    'papillon',
-    'Pekinese',
-    'redbone',
-    'Rhodesian ridgeback',
+    'Maltese_dog',
+    'Afghan_hound',
+    'Scottish_deerhound',
+    'Pomeranian',
+    'Samoyed',
+    'Irish_wolfhound',
+    'Bernese_mountain_dog',
     'Shih',
-    'toy terrier',
-    'Walker hound'
+    'Great_Pyrenees',
+    'Leonberg',
+    'basenji',
+    'Tibetan_terrier',
+    'Sealyham_terrier',
+    'EntleBucher',
+    'Airedale',
+    'Saluki',
+    'pug',
+    'cairn',
+    'Lakeland_terrier',
+    'Australian_terrier'
 ]
 # labels = [
 #     'Afghan hound',
@@ -39,11 +39,11 @@ labels = [
 img_size = (224, 224)
 
 
-def train_model(model, epochs=4, model_name='model_simple', save_model=False, patience=3):
+def train_model(model, epochs=4, model_name='model_simple', save_model=False, patience=3, batch_size=default_batch_size):
     image_generator = imagegenerator.ImageGenerator(data_path, validation_split=0.2, seed=123,
                                                     batch_size=batch_size, image_size=img_size)
 
-    history = model.train_with_generator(image_generator, epochs, callbacks=[models.early_stopping(patience=patience, min_delta=1e-3)])
+    history = model.train_with_generator(image_generator, epochs, callbacks=[models.early_stopping(patience=patience, min_delta=1e-4)])
     # history = model.train_with_arrays(image_generator, epochs, callbacks=[models.early_stopping(patience=patience, min_delta=1e-3)])
 
     an = analyzer.Analyzer(results_path)
@@ -95,6 +95,6 @@ if __name__ == "__main__":
     set_gpu_enabled(True)
     # run_simple_model(save_model=True)
     # run_1a(epochs=1000, model_name='1a', save_model=True, patience=20)
-    run_2a(epochs=1000, model_name='1a', save_model=True, patience=20)
-    # run_2b(epochs=1000, model_name='1a', save_model=True, patience=20)
-    # run_2c(epochs=1000, model_name='1a', save_model=True, patience=20)
+    run_2c(epochs=1000, model_name='2c', save_model=True, patience=80, batch_size=16)
+    run_2b(epochs=1000, model_name='2b', save_model=True, patience=20)
+    run_2a(epochs=1000, model_name='2a', save_model=True, patience=20)
