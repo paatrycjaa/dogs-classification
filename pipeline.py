@@ -11,26 +11,27 @@ default_batch_size = 32
 
 labels = [
     'Maltese_dog',
+    'Shih-Tzu',
     'Afghan_hound',
-    'Scottish_deerhound',
-    'Pomeranian',
-    'Samoyed',
     'Irish_wolfhound',
-    'Bernese_mountain_dog',
-    'Shih',
-    'Great_Pyrenees',
-    'Leonberg',
-    'basenji',
-    'Tibetan_terrier',
-    'Sealyham_terrier',
-    'EntleBucher',
-    'Airedale',
     'Saluki',
-    'pug',
-    'cairn',
+    'Scottish_deerhound',
     'Lakeland_terrier',
-    'Australian_terrier'
+    'Sealyham_terrier',
+    'Airedale',
+    'cairn',
+    'Australian_terrier',
+    'Tibetan_terrier',
+    'Bernese_mountain_dog',
+    'EntleBucher',
+    'basenji',
+    'pug',
+    'Leonberg',
+    'Great_Pyrenees',
+    'Samoyed',
+    'Pomeranian'
 ]
+
 # labels = [
 #     'Afghan hound',
 #     'Maltese dog',
