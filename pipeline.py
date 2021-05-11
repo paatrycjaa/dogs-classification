@@ -95,7 +95,7 @@ def run_2c(**kwargs):
 if __name__ == "__main__":
     set_gpu_enabled(True)
     # run_simple_model(save_model=True)
-    # run_1a(epochs=1000, model_name='1a', save_model=True, patience=20)
-    run_2c(epochs=1000, model_name='2c', save_model=True, patience=80, batch_size=16)
-    run_2b(epochs=1000, model_name='2b', save_model=True, patience=20)
-    run_2a(epochs=1000, model_name='2a', save_model=True, patience=20)
+    run_1a(epochs=1000, model_name='1a', save_model=True, patience=10)
+    run_2c(epochs=1000, model_name='2c', save_model=True, patience=20, batch_size=16)
+    run_2b(epochs=1000, model_name='2b', save_model=True, patience=10)
+    run_2a(epochs=1000, model_name='2a', save_model=True, patience=10)
