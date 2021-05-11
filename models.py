@@ -47,6 +47,7 @@ class MobileNetV3():
         if dropout_rate > 0:
             self.model.add(layers.Dropout(dropout_rate))
         self.model.add(layers.Conv2D(self.labels_num, kernel_size=1, padding='same'))
+        self.model.add(layers.Dropout(dropout_rate))
         self.model.add(layers.Flatten())
         self.model.add(layers.Activation('softmax'))
 
@@ -69,6 +70,7 @@ class MobileNetV3():
         if dropout_rate > 0:
             self.model.add(layers.Dropout(dropout_rate))
         self.model.add(layers.Conv2D(self.labels_num, kernel_size=1, padding='same'))
+        self.model.add(layers.Dropout(dropout_rate))
         self.model.add(layers.Flatten())
         self.model.add(layers.Activation('softmax'))
 
@@ -94,6 +96,7 @@ class MobileNetV3():
         if dropout_rate > 0:
             self.model.add(layers.Dropout(dropout_rate))
         self.model.add(layers.Conv2D(self.labels_num, kernel_size=1, padding='same'))
+        self.model.add(layers.Dropout(dropout_rate))
         self.model.add(layers.Flatten())
         self.model.add(layers.Activation('softmax'))
 
@@ -124,6 +127,7 @@ class MobileNetV3():
         if dropout_rate > 0:
             self.model.add(layers.Dropout(dropout_rate))
         self.model.add(layers.Conv2D(self.labels_num, kernel_size=1, padding='same'))
+        self.model.add(layers.Dropout(dropout_rate))
         self.model.add(layers.Flatten())
         self.model.add(layers.Activation('softmax'))
 
