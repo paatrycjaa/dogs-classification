@@ -55,7 +55,7 @@ class MobileNetV3():
 
         self.model.summary()
 
-    def build_mobileNetV3_SVM(self, image_generator, batches_num = 16, kernel='rbf', C = 1.0):
+    def build_and_train_mobileNetV3_SVM(self, image_generator, batches_num = 16, kernel='rbf', C = 1.0):
         """
         Build model for task 1b - SVM as classificator
         """
