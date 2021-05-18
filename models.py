@@ -1,6 +1,9 @@
 import tensorflow as tf
 from tensorflow.keras import models
 from tensorflow.keras import layers
+from keras.regularizers import l2
+from sklearn import svm
+import numpy as np
 
 
 class MobileNetV3():
@@ -51,6 +54,30 @@ class MobileNetV3():
         self.model.add(layers.Activation('softmax'))
 
         self.model.summary()
+
+    def build_and_train_mobileNetV3_SVM(self, image_generator, batches_num = 16, kernel='rbf', C = 1.0):
+        """
+        Build model for task 1b - SVM as classificator
+        """
+
+        for layer in self.base_model.layers:
+            layer.trainable = False
+
+        # base_output_shape = self.base_model.get_layer('avg_pool').output_shape[1]
+        train_data = image_generator.train_array(batches_num)
+        base_model_output = self.base_model.predict(train_data[0])
+        # print(base_model_output.shape)
+        # print(train_data)
+        
+        model_svm = svm.SVC(kernel = kernel, gamma='auto', C = C)   #other parameters: degree, coef0
+        model_svm.fit(base_model_output, np.argmax(train_data[1],axis=1))
+
+        self.model = model_svm
+        #self.model = models.Sequential()
+        #self.model.add(self.base_model)
+        #self.model.add(Dense(self.labels_num), W_regularizer=l2())
+
+
 
     def build_mobileNetV3_2a(self, dropout_rate=0.2):
         """
