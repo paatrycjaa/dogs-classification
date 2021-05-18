@@ -69,7 +69,7 @@ def make_gradcam_heatmap(img_array, model, layer_name, pred_index=None):
     #print("HEATMAP")
     #print(heatmap)
     #print("")
-    
+
     heatmap = tf.squeeze(heatmap)
     heatmap = tf.maximum(heatmap, 0) / tf.math.reduce_max(heatmap)
     return heatmap.numpy()
@@ -88,7 +88,8 @@ def save_and_display_gradcam(img, heatmap, cam_path="cam.jpg", alpha=0.4):
     jet_heatmap = jet_heatmap.resize((img.shape[1], img.shape[0]))
     jet_heatmap = keras.preprocessing.image.img_to_array(jet_heatmap)
     #combine image with heatmap
-    superimposed_img = jet_heatmap * alpha + img
+    # correct heatmap scale to match image
+    superimposed_img = 255 * jet_heatmap * alpha + img
     superimposed_img = keras.preprocessing.image.array_to_img(superimposed_img)
 
     superimposed_img.save(cam_path)
