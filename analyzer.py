@@ -28,8 +28,7 @@ class Analyzer:
 
         self._generate_md_report(model_name, timestamp, model_parameters, training_history)
         self._generate_metrics_json()
-
-        self._save_confusion_matrix_plot(labels)
+        self._dump_sklearn_report()
 
         if training_history is not None:
             self._save_training_history(training_history)
@@ -45,15 +44,22 @@ class Analyzer:
         x, y_true = image_generator.test_array()
         y_predicted = self.model.predict(x)
 
-        self.accuracy = metrics.accuracy_score(np.argmax(y_true, axis=1), np.argmax(y_predicted, axis=1))
-        self.k_accuracy = metrics.top_k_accuracy_score(np.argmax(y_true, axis=1), y_predicted, k=self.k)
-        self.conf_matrix = metrics.confusion_matrix(np.argmax(y_true, axis=1), np.argmax(y_predicted, axis=1))
+        y_true1d = np.argmax(y_true, axis=1)
+        y_predicted1d = np.argmax(y_predicted, axis=1)
+
+        self.accuracy = metrics.accuracy_score(y_true1d, y_predicted1d)
+        self.k_accuracy = metrics.top_k_accuracy_score(y_true1d, y_predicted, k=self.k)
+        self.conf_matrix = metrics.confusion_matrix(y_true1d, y_predicted1d)
+
+        self.sklearn_metrics = metrics.classification_report(y_true1d, y_predicted1d, target_names=labels, output_dict=True, digits=3)
+        self.sklearn_metrics_printable = metrics.classification_report(y_true1d, y_predicted1d, target_names=labels, output_dict=False, digits=3)
 
     def _print_metrics(self, model_name):
         print('{} metrics:'.format(model_name))
         print('accuracy: {:.3f}'.format(self.accuracy))
         print('{}-accuracy: {:.3f}'.format(self.k, self.k_accuracy))
         print('confusion matrics:\n', self.conf_matrix)
+        print('sklearn report:\n', self.sklearn_metrics_printable)
 
     def _generate_metrics_json(self):
         m = {
@@ -66,6 +72,10 @@ class Analyzer:
         with open(os.path.join(self.reports_path, 'metrics.json'), 'w') as f:
             json.dump(m, f)
 
+    def _dump_sklearn_report(self):
+        with open(os.path.join(self.reports_path, 'sklearn_metrics.json'), 'w') as f:
+            json.dump(self.sklearn_metrics, f)
+
     def _generate_md_report(self, model_name, timestamp, model_parameters, history):
         with open(os.path.join(self.reports_path, 'report.md'), 'w') as f:
             f.write('# {}\n*{}*\n'.format(model_name, timestamp.strftime("%Y-%m-%d %H:%M:%S")))
@@ -75,8 +85,13 @@ class Analyzer:
                 self._add_model_parameters(f, model_parameters)
 
             self._add_metrics(f)
+            self._add_sklearn_report(f)
             self._add_confusion_matrix(f)
             self._add_history(f, history)
+
+    def _add_sklearn_report(self, file):
+        text = '## Sklearn report\n```\n{}\n```\n'.format(self.sklearn_metrics_printable)
+        file.write(text)
 
     def _add_confusion_matrix(self, file):
         text = '## Confusion matrix\n'
@@ -100,7 +115,7 @@ class Analyzer:
     def _add_model_parameters(self, file, parameters):
         text = '### Model parameters\n'
         text += '| Prameters | Value \n --- | ---\n'
-        for k, v in items:
+        for k, v in parameters.items():
             text += '{} | {}\n'.format(k,v)
         f.write(text)
 
@@ -111,8 +126,9 @@ class Analyzer:
 
     def _add_history(self, file, history):
         df = pd.DataFrame(history.history)
+        text = '## Training History\n'
         header = ' | '.join(df.columns)
-        text = header + '\n'
+        text += header + '\n'
         text += ' | '.join(len(df.columns)*['---']) + '\n'
         for _, row in df.iterrows():
             text += ' | '.join([str(round(x,4)) for x in row.values])
@@ -127,15 +143,3 @@ class Analyzer:
         except FileExistsError:
             pass
         return path
-
-    def _save_confusion_matrix_plot(self, labels):
-        fig, ax = plt.subplots(figsize=(8, 8))
-        ax.set_title('Confusion matrix')
-        ax.matshow(self.conf_matrix, interpolation='nearest')
-        n = np.arange(self.conf_matrix.shape[0])
-        ax.set_xticks(n)
-        ax.set_yticks(n)
-        if labels:
-            ax.set_xticklabels(labels)
-            ax.set_yticklabels(labels)
-        plt.savefig(os.path.join(self.reports_path, 'confusion_matrix.png'))
