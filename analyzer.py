@@ -15,9 +15,10 @@ class Analyzer:
     def __init__(self, reports_path):
         self.reports_path = reports_path
 
-    def analyze_model(self, model, model_name, image_generator, model_parameters=None, labels=None, k=2, training_history=None, save_model=False):
+    def analyze_model(self, model, model_name, image_generator, model_parameters=None, labels=None, k=2, training_history=None, save_model=False, svm=False):
         self.model = model
         self.k = k
+        self.svm = svm
 
         timestamp = datetime.datetime.now()
 
@@ -42,13 +43,20 @@ class Analyzer:
 
     def _compute_metrics(self, image_generator, labels):
         x, y_true = image_generator.test_array()
-        y_predicted = self.model.predict(x)
-
         y_true1d = np.argmax(y_true, axis=1)
-        y_predicted1d = np.argmax(y_predicted, axis=1)
+
+        if self.svm:
+            base_model_output = self.model.base_model.predict(x)
+            y_predicted1d = self.model.model.predict(base_model_output)
+            y_predicted = None
+            self.k_accuracy = 0.0
+        else:
+            y_predicted = self.model.predict(x)
+            y_predicted1d = np.argmax(y_predicted, axis=1)
+            self.k_accuracy = metrics.top_k_accuracy_score(y_true1d, y_predicted, k=self.k)
 
         self.accuracy = metrics.accuracy_score(y_true1d, y_predicted1d)
-        self.k_accuracy = metrics.top_k_accuracy_score(y_true1d, y_predicted, k=self.k)
+
         self.conf_matrix = metrics.confusion_matrix(y_true1d, y_predicted1d)
 
         self.sklearn_metrics = metrics.classification_report(y_true1d, y_predicted1d, target_names=labels, output_dict=True, digits=3)
@@ -121,10 +129,16 @@ class Analyzer:
 
     def _add_model_summary(self, file):
         file.write('## Model\n```')
-        self.model.summary(print_fn=lambda x : file.write(x + '\n'))
+        if self.svm:
+            file.write('SVM\n')
+            json.dump(self.model.model.get_params(), file)
+        else:
+            self.model.summary(print_fn=lambda x : file.write(x + '\n'))
         file.write('```\n')
 
     def _add_history(self, file, history):
+        if history is None:
+            return
         df = pd.DataFrame(history.history)
         text = '## Training History\n'
         header = ' | '.join(df.columns)

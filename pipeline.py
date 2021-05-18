@@ -91,6 +91,16 @@ def run_2c(**kwargs):
     model.build_mobileNetV3_2c()
     train_model(model, **kwargs)
 
+def run_1b(batch_size=32, batches_num=16, kernel='rbf', C = 1.0, model_name='svm', save_model=False):
+    model = models.MobileNetV3(img_size, len(labels))
+    image_generator = imagegenerator.ImageGenerator(data_path, validation_split=0.2, seed=123,
+                                                    batch_size=batch_size, image_size=img_size)
+    model.build_and_train_mobileNetV3_SVM(image_generator, batches_num=batches_num, kernel=kernel, C=C)
+    an = analyzer.Analyzer(results_path)
+
+    an.analyze_model(model, model_name, image_generator, model_parameters=None, labels=labels,
+                     k=2, training_history=None, save_model=save_model, svm=True)
+
 
 if __name__ == "__main__":
     set_gpu_enabled(True)
@@ -99,3 +109,7 @@ if __name__ == "__main__":
     run_2c(epochs=1000, model_name='2c', save_model=True, patience=20, batch_size=16)
     run_2b(epochs=1000, model_name='2b', save_model=True, patience=10)
     run_2a(epochs=1000, model_name='2a', save_model=True, patience=10)
+    svm_batches = 40
+    run_1b(batches_num=svm_batches, kernel='linear', model_name='svm_linear')
+    run_1b(batches_num=svm_batches, kernel='poly', model_name='svm_poly')
+    run_1b(batches_num=svm_batches, kernel='rbf', model_name='svm_rbf')
