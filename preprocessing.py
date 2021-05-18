@@ -13,7 +13,7 @@ def _move_files(src_path, dst_path, fraction=0.2):
 
 
 def extract_test(src_path, dst_path, split=0.2):
-    for directory in os.listdir(src_path):        
+    for directory in os.listdir(src_path):
         src = os.path.join(src_path, directory)
         dst = os.path.join(dst_path, directory)
 
@@ -33,4 +33,7 @@ def count_images_per_class(directory):
         counter.append((dir, len(os.listdir(os.path.join(directory, dir)))))
 
     print(np.array(sorted(counter, key=lambda x : x[1], reverse=True)))
-           
+
+
+if __name__ == "__main__":
+    count_images_per_class('images/all/train')

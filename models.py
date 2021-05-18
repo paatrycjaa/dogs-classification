@@ -209,7 +209,7 @@ class MobileNetV3():
 
 def early_stopping(min_delta=1e-2, patience=3):
     return tf.keras.callbacks.EarlyStopping(
-        monitor='val_loss',
+        monitor='val_accuracy',
         min_delta=min_delta,
         patience=patience,
         verbose=1,
