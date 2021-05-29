@@ -1,41 +1,48 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras.applications import inception_v3
 from tensorflow.keras.preprocessing.image import load_img
-from IPython.display import Image, display
-import os
 from pipeline import set_gpu_enabled
+import os
+import matplotlib.pyplot as plt
+import re
 
 
-class DeepDream():
+class DeepDream:
 
-    def __init__(self, model, layer_settings = None):
-        self.base_image_path = "sky.jpeg"
-        self.result_prefix = "sky_dream"
+    def __init__(self, model, layer_settings=None, in_base=True, step_size=2, iterations=20):
+        self.step = step_size  # Gradient ascent step size
+        self.iterations = iterations  # Number of ascent steps per scale
+        self.max_loss = 100000
 
-    # These are the names of the layers
-    # for which we try to maximize activation,
-    # as well as their weight in the final loss
-    # we try to maximize.
-    # You can tweak these setting to obtain new visual effects.
-        if(layer_settings == None):
+        # These are the names of the layers
+        # for which we try to maximize activation,
+        # as well as their weight in the final loss
+        # we try to maximize.
+        # You can tweak these setting to obtain new visual effects.
+        if layer_settings is None:
             self.layer_settings = {
-                "mixed4": 1.0,
-                "mixed5": 1.5,
-                "mixed6": 2.0,
-                "mixed7": 2.5,
+                "reshape_8": 1.0,
             }
         else:
             self.layer_settings = layer_settings
         self.model = model
 
-        self.outputs_dict = dict(
-        [
-            (layer.name, layer.output)
-            for layer in [model.get_layer(name) for name in self.layer_settings.keys()]
-        ]
-        )
+        if in_base:
+            self.outputs_dict = dict(
+                [
+                    (layer.name, layer.output)
+                    for layer in [model.layers[0].get_layer(name) for name in self.layer_settings.keys()]
+                ]
+            )
+        else:
+            self.outputs_dict = dict(
+                [
+                    (layer.name, layer.output)
+                    for layer in [model.get_layer(name) for name in self.layer_settings.keys()]
+                ]
+            )
+
         print("##########################################")
         print("OUTPUT DICT")
         print("##########################################")
@@ -43,41 +50,42 @@ class DeepDream():
 
         # Set up a model that returns the activation values for every target layer
         # (as a dict)
-        self.feature_extractor = keras.Model(inputs=self.model.inputs, outputs=self.outputs_dict)
+        if in_base:
+            self.feature_extractor = keras.Model(inputs=self.model.layers[0].inputs, outputs=self.outputs_dict)
+        else:
+            self.feature_extractor = keras.Model(inputs=self.model.inputs, outputs=self.outputs_dict)
+
         print("##########################################")
         print("INPUT")
         print("##########################################")
-        print(self.model.inputs)
+        if in_base:
+            print(self.model.layers[0].inputs)
+        else:
+            print(self.model.inputs)
         print("##########################################")
         print("feature extractor")
         print("##########################################")
         print(self.feature_extractor)
-        
-
-        # Playing with these hyperparameters will also allow you to achieve new effects
-        self.step = 0.01  # Gradient ascent step size
-        self.num_octave = 3  # Number of scales at which to run gradient ascent
-        self.octave_scale = 1.4  # Size ratio between scales
-        self.iterations = 20  # Number of ascent steps per scale
-        self.max_loss = 15.0
 
     def preprocess_image(self, img):
         # Util function to open, resize and format pictures
         # into appropriate arrays.
+        edge = min(img.size[0], img.size[1])
+        box = (
+            (img.size[0] - edge) / 2,
+            (img.size[1] - edge) / 2,
+            (img.size[0] - edge) / 2 + edge,
+            (img.size[1] - edge) / 2 + edge
+        )
+        img = img.crop(box)
+        img = img.resize((224, 224))
         img = keras.preprocessing.image.img_to_array(img)
-        img = np.expand_dims(img, axis=0)
-        img = inception_v3.preprocess_input(img)
+        img = np.reshape(img, (1, 224, 224, 3))
+        img = keras.applications.mobilenet_v3.preprocess_input(img)
         return img
 
-
     def deprocess_image(self, x):
-        # Util function to convert a NumPy array into a valid image.
         x = x.reshape((x.shape[1], x.shape[2], 3))
-        # Undo inception v3 preprocessing
-        x /= 2.0
-        x += 0.5
-        x *= 255.0
-        # Convert to uint8 and clip to the valid range [0, 255]
         x = np.clip(x, 0, 255).astype("uint8")
         return x
 
@@ -104,7 +112,6 @@ class DeepDream():
         img += learning_rate * grads
         return loss, img
 
-
     def gradient_ascent_loop(self, img, iterations, learning_rate, max_loss=None):
         for i in range(iterations):
             loss, img = self.gradient_ascent_step(img, learning_rate)
@@ -114,39 +121,49 @@ class DeepDream():
         return img
 
     def deep_dream_filtering(self, img):
-
         original_img = self.preprocess_image(img)
-        original_shape = original_img.shape[1:3]
-
-        successive_shapes = [original_shape]
-        for i in range(1, self.num_octave):
-            shape = tuple([int(dim / (self.octave_scale ** i)) for dim in original_shape])
-            successive_shapes.append(shape)
-        successive_shapes = successive_shapes[::-1]
-        shrunk_original_img = tf.image.resize(original_img, successive_shapes[0])
-
         img = tf.identity(original_img)  # Make a copy
-        for i, shape in enumerate(successive_shapes):
-            print("Processing octave %d with shape %s" % (i, shape))
-            img = tf.image.resize(img, shape)
-            img = self.gradient_ascent_loop(
-                img, iterations=self.iterations, learning_rate=self.step, max_loss=self.max_loss
-            )
-            upscaled_shrunk_original_img = tf.image.resize(shrunk_original_img, shape)
-            same_size_original = tf.image.resize(original_img, shape)
-            lost_detail = same_size_original - upscaled_shrunk_original_img
+        print("Processing...")
+        img = self.gradient_ascent_loop(
+            img, iterations=self.iterations, learning_rate=self.step, max_loss=self.max_loss
+        )
+        return self.deprocess_image(img.numpy())
 
-            img += lost_detail
-            shrunk_original_img = tf.image.resize(original_img, shape)
-
-        keras.preprocessing.image.save_img(self.result_prefix + ".png", self.deprocess_image(img.numpy()))
-
-        display(Image(self.result_prefix + ".png"))
 
 if __name__ == "__main__":
-    set_gpu_enabled(True)
-    model = inception_v3.InceptionV3(weights="imagenet", include_top=False)
-    image = load_img("doggo.jpg")
-    dream = DeepDream(model)
+    set_gpu_enabled(False)
+    model_dir = 'model_for_deepdream'
+    input_file = 'among.png'
+    output_dir = 'deepdream'
+    step_size = 1  # Gradient ascent step size
+    iterations = 200  # Number of ascent steps
+    layers = [
+        'Conv',
+        'expanded_conv/depthwise',
+        'expanded_conv/project',
+        'expanded_conv_3/project',
+        'expanded_conv_5/depthwise',
+        'expanded_conv_8/expand',
+        'expanded_conv_9/project',
+        'expanded_conv_10/depthwise',
+        'Conv_1',
+        'Conv_2'
+    ]
 
-    dream.deep_dream_filtering(image)
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+    model = keras.models.load_model(model_dir)
+    image = load_img(input_file)
+    for layer in layers:
+        layer_settings = {
+            layer: 1.0,
+        }
+        dream = DeepDream(model, layer_settings=layer_settings,
+                          step_size=step_size, iterations=iterations)
+        result_image = dream.deep_dream_filtering(image)
+        result_name = input_file.split('/')[-1].split('.')[0] + "-s" + str(step_size) + "-i" + str(iterations) \
+            + "-" + re.sub('[^a-zA-Z0-9_]', '', layer)
+        keras.preprocessing.image.save_img(os.path.join(output_dir, result_name) + ".png", result_image)
+        plt.imshow(result_image)
+        plt.title(layer)
+        plt.show()
