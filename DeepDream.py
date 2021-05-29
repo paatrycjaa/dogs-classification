@@ -10,7 +10,7 @@ import re
 
 class DeepDream:
 
-    def __init__(self, model, layer_settings=None, in_base=True, step_size=2, iterations=20):
+    def __init__(self, model, layer_settings=None, in_base=True, step_size=2.0, iterations=20):
         self.step = step_size  # Gradient ascent step size
         self.iterations = iterations  # Number of ascent steps per scale
         self.max_loss = 100000
@@ -133,10 +133,10 @@ class DeepDream:
 if __name__ == "__main__":
     set_gpu_enabled(False)
     model_dir = 'model_for_deepdream'
-    input_file = 'among.png'
+    input_file = 'chmura.jpg'
     output_dir = 'deepdream'
     step_size = 1  # Gradient ascent step size
-    iterations = 200  # Number of ascent steps
+    iterations = 100  # Number of ascent steps
     layers = [
         'Conv',
         'expanded_conv/depthwise',
@@ -153,7 +153,12 @@ if __name__ == "__main__":
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
     model = keras.models.load_model(model_dir)
+    model.summary()
     image = load_img(input_file)
+    plt.imshow(image)
+    plt.title(input_file)
+    plt.show()
+
     for layer in layers:
         layer_settings = {
             layer: 1.0,
