@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras import models
 from tensorflow.keras import layers
-from keras.regularizers import l2
+from tensorflow.keras.regularizers import l2
 from sklearn import svm
 import numpy as np
 

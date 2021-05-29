@@ -2,8 +2,11 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.applications import inception_v3
-from keras.preprocessing.image import load_img
+from tensorflow.keras.preprocessing.image import load_img
 from IPython.display import Image, display
+import os
+from pipeline import set_gpu_enabled
+
 
 class DeepDream():
 
@@ -141,6 +144,7 @@ class DeepDream():
         display(Image(self.result_prefix + ".png"))
 
 if __name__ == "__main__":
+    set_gpu_enabled(True)
     model = inception_v3.InceptionV3(weights="imagenet", include_top=False)
     image = load_img("doggo.jpg")
     dream = DeepDream(model)
