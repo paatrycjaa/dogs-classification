@@ -1,6 +1,8 @@
 deepdream/
 images/
+model_for_deepdream/
 results/
+.idea/
 .ipynb_checkpoints/
 .vscode/
 
