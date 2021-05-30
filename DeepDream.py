@@ -19,10 +19,9 @@ class DeepDream:
         # for which we try to maximize activation,
         # as well as their weight in the final loss
         # we try to maximize.
-        # You can tweak these setting to obtain new visual effects.
         if layer_settings is None:
             self.layer_settings = {
-                "reshape_8": 1.0,
+                'expanded_conv_5/depthwise': 1.0,
             }
         else:
             self.layer_settings = layer_settings
@@ -67,29 +66,19 @@ class DeepDream:
         print("##########################################")
         print(self.feature_extractor)
 
-    def preprocess_image(self, img):
-        # Util function to open, resize and format pictures
-        # into appropriate arrays.
-        edge = min(img.size[0], img.size[1])
-        box = (
-            (img.size[0] - edge) / 2,
-            (img.size[1] - edge) / 2,
-            (img.size[0] - edge) / 2 + edge,
-            (img.size[1] - edge) / 2 + edge
-        )
-        img = img.crop(box)
-        img = img.resize((224, 224))
+    def _preprocess_image(self, img):
+        # Util function to format picture into appropriate array.
         img = keras.preprocessing.image.img_to_array(img)
         img = np.reshape(img, (1, 224, 224, 3))
         img = keras.applications.mobilenet_v3.preprocess_input(img)
         return img
 
-    def deprocess_image(self, x):
+    def _deprocess_image(self, x):
         x = x.reshape((x.shape[1], x.shape[2], 3))
         x = np.clip(x, 0, 255).astype("uint8")
         return x
 
-    def compute_loss(self, input_image):
+    def _compute_loss(self, input_image):
         features = self.feature_extractor(input_image)
         # Initialize the loss
         loss = tf.zeros(shape=())
@@ -101,10 +90,10 @@ class DeepDream:
             loss += coeff * tf.reduce_sum(tf.square(activation[:, 2:-2, 2:-2, :])) / scaling
         return loss
 
-    def gradient_ascent_step(self, img, learning_rate):
+    def _gradient_ascent_step(self, img, learning_rate):
         with tf.GradientTape() as tape:
             tape.watch(img)
-            loss = self.compute_loss(img)
+            loss = self._compute_loss(img)
         # Compute gradients.
         grads = tape.gradient(loss, img)
         # Normalize gradients.
@@ -112,28 +101,41 @@ class DeepDream:
         img += learning_rate * grads
         return loss, img
 
-    def gradient_ascent_loop(self, img, iterations, learning_rate, max_loss=None):
+    def _gradient_ascent_loop(self, img, iterations, learning_rate, max_loss=None):
         for i in range(iterations):
-            loss, img = self.gradient_ascent_step(img, learning_rate)
+            loss, img = self._gradient_ascent_step(img, learning_rate)
             if max_loss is not None and loss > max_loss:
                 break
             print("... Loss value at step %d: %.2f" % (i, loss))
         return img
 
     def deep_dream_filtering(self, img):
-        original_img = self.preprocess_image(img)
+        original_img = self._preprocess_image(img)
         img = tf.identity(original_img)  # Make a copy
         print("Processing...")
-        img = self.gradient_ascent_loop(
+        img = self._gradient_ascent_loop(
             img, iterations=self.iterations, learning_rate=self.step, max_loss=self.max_loss
         )
-        return self.deprocess_image(img.numpy())
+        return self._deprocess_image(img.numpy())
+
+
+def crop_and_resize(img, size=(224, 224)):
+    edge = min(img.size[0], img.size[1])
+    box = (
+        (img.size[0] - edge) / 2,
+        (img.size[1] - edge) / 2,
+        (img.size[0] - edge) / 2 + edge,
+        (img.size[1] - edge) / 2 + edge
+    )
+    img = img.crop(box)
+    img = img.resize(size)
+    return img
 
 
 if __name__ == "__main__":
     set_gpu_enabled(False)
     model_dir = 'model_for_deepdream'
-    input_file = 'chmura.jpg'
+    input_file = 'doggo4.jpg'
     output_dir = 'deepdream'
     step_size = 1  # Gradient ascent step size
     iterations = 100  # Number of ascent steps
@@ -143,9 +145,15 @@ if __name__ == "__main__":
         'expanded_conv/project',
         'expanded_conv_3/project',
         'expanded_conv_5/depthwise',
+        'expanded_conv_5/project',
+        'expanded_conv_6/expand',
+        'expanded_conv_6/depthwise',
+        'expanded_conv_7/depthwise',
         'expanded_conv_8/expand',
+        'expanded_conv_8/depthwise',
         'expanded_conv_9/project',
         'expanded_conv_10/depthwise',
+        'expanded_conv_10/project',
         'Conv_1',
         'Conv_2'
     ]
@@ -153,10 +161,15 @@ if __name__ == "__main__":
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
     model = keras.models.load_model(model_dir)
-    model.summary()
+    # model.layers[0].summary()
+    # ddd
     image = load_img(input_file)
     plt.imshow(image)
     plt.title(input_file)
+    plt.show()
+    image = crop_and_resize(image)
+    plt.imshow(image)
+    plt.title(input_file + "[cropped]")
     plt.show()
 
     for layer in layers:
