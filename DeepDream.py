@@ -168,6 +168,7 @@ if __name__ == "__main__":
     plt.title(input_file)
     plt.show()
     image = crop_and_resize(image)
+    keras.preprocessing.image.save_img(os.path.join(output_dir, input_file), image)
     plt.imshow(image)
     plt.title(input_file + "[cropped]")
     plt.show()
